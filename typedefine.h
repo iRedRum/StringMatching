@@ -9,9 +9,9 @@ typedef int bool;
 #define false 0
 #define true 1
 
-#define PLMAX 1300000 
-#define wMAX 120 
-#define BMAX 10000 
+#define PLMAX 1300000
+#define wMAX 120
+#define BMAX 10000
 
 typedef struct mynode{  
     /** 节点的值 */  
@@ -39,6 +39,16 @@ typedef struct mynode{
     /*表示这个节点的失效函数的下一个节点*/
     
 }TSTNode;  
+
+typedef struct lnode{
+	
+	//输出结构
+	
+	bool flag;//该节点是否有关键字 
+	long long offset;//在需要进行匹配的文本中的偏移量 
+	char key[wMAX];//该节点存放的关键字 
+	int len;//该节点存放的关键字的长度 
+}LNode,*LNP;
 
 typedef TSTNode* TSTp;
 

@@ -15,7 +15,18 @@ int main()
 	int len=0;	//关键字数组已存入字数目
 	int linecount=1; //记录关键字在文本文件中的第几行 
 	FILE *fp=NULL;	//文件指针 
+	LNP line=(LNP)malloc(sizeof(LNode)*PLMAX);
+	//申请用来存放输出结构体的空间 
+	int i=0;
+	int lentemp;//读入的时候长度的暂存量 
 
+	for(i=0;i<PLMAX;i++)
+	//初始化输出结构体 
+	{
+		line[i].flag=false;
+		line[i].offset=-1;
+		line[i].len=0;
+	}
 	
 	fp=fopen("pattern.txt","r");
 	init(root);
@@ -33,6 +44,11 @@ int main()
 		//然后把这个关键字传入，进行树的构建 
 		{
 			in[len]='\0';
+			lentemp=line[linecount].len;
+			line[linecount].key[lentemp]=0;
+			//存放关键字的结尾'\0' 
+			line[linecount].flag=true;
+			//表示该节点进行了关键字的存储 
 			add(in,root,len,linecount);
 			len=0;//长度重新初始化为0 
 			linecount++;//关键字的行数进行递增 
@@ -44,22 +60,35 @@ int main()
 		{
 			in[len]=0x00;
 			in[len+1]=a;
+			lentemp=line[linecount].len++;
+			line[linecount].key[lentemp]=a;
 		}
 		else
 		//中文的处理方式，一次传入两个文件内的字符 
 		{
 			in[len]=a;
+			lentemp=line[linecount].len++;
+			line[linecount].key[lentemp]=a;
 			a=fgetc(fp);
 			in[len+1]=a;
+			lentemp=line[linecount].len++;
+			line[linecount].key[lentemp]=a;
 		}
 		len+=2;
 		a=fgetc(fp);
 	}
 	
 	//文本中的最后一个字符需要进行特殊处理 
-	in[len]='\0';
-	
-	add(in,root,len,linecount); 
+	if(line[linecount].len!=0)
+	//如果文本最后一个字符是回车符号，那么就不需要进行添加结束符号并且存储的步骤了 
+	{
+		in[len]='\0';
+		lentemp=line[linecount].len;
+		line[linecount].key[lentemp]=0;
+		line[linecount].flag=true;
+		add(in,root,len,linecount); 
+	}
+	fclose(fp);
 	
 	et=clock();
 	theTimes=(double)((et-st)/CLOCKS_PER_SEC);
@@ -79,16 +108,8 @@ int main()
 	//遍历出所有第一层的节点 
 	pStack hps=Traverse(ps);
 
-	//printf("%d",max);
-    //unsigned long line[2000000];
-    long long * line=(long long *)malloc(sizeof(long long)*PLMAX); 
-    
-    int i=0;
-    for(i=0;i<PLMAX;i++)
-    	line[i]=-1;
-	
-	
-	
+
+	//在建好的三叉树上创建失效函数 
 	while(!Empty(hps))
 	{
 		//将遍历出来的高层的节点保存进底层节点的栈里，进行下一次的遍历 
@@ -124,6 +145,9 @@ int main()
 		printf("error.\n");
 		return 0;
 	}
+	
+	
+	//进行文件字符串的匹配 
 	
 	int readi;//用来进行读入缓冲区的数组下标
 	
@@ -193,8 +217,8 @@ int main()
 				if(mp->isEnd==1)
 				//判断mp是否是一个关键字的结束节点 
 				{
-					if(line[mp->num]==-1) 
-						line[mp->num]=preoffset+i;
+					if(line[mp->num].offset==-1) 
+						line[mp->num].offset=preoffset+i;
 					//进行输出到result文件上
 					
 				} 
@@ -209,8 +233,8 @@ int main()
 			{
 				if(np->isEnd==1)
 				{
-					if(line[np->num]==-1)
-						line[np->num]=preoffset+i;
+					if(line[np->num].offset==-1)
+						line[np->num].offset=preoffset+i;
 					//printf("%ld",ftell(rfp));
 					//匹配的节点是关键字的结束的节点，输出相应数据到result里面 
 				} 
@@ -219,9 +243,13 @@ int main()
 				//接下来进行下一个关键字的匹配了 	
 			}
 		}
+		
 		preoffset=ftell(rfp);
+		//已经读入的文件大小，用来计算后面的偏移量 
+		
 	}
-	fclose(rfp);
+	
+	fclose(rfp); 
 	
 	et=clock();
 	theTimes=(double)((et-st)/CLOCKS_PER_SEC);
@@ -230,29 +258,21 @@ int main()
 	
 	
 	FILE *wfp=fopen("wtest.txt","w");
-	if(wfp==NULL)
-	{
-		printf("error.\n");
-		return 0;
-	}
-	fseek(fp,0,SEEK_SET);
-	char akey[wMAX];
-	long midnum=0; 
 	for(i=1;i<PLMAX;i++)
 	{
-		fgets(akey,wMAX,fp);
-		akey[ftell(fp)-midnum-2]='\0';
-		midnum=ftell(fp);
-		fprintf(wfp,"%s\t%10ld\n",akey,line[i]);
+		if(!line[i].flag)
+		//该节点是否有存放关键字 
+		//这里担心关键字的文档存在断层，我们使用了continue 
+			continue;
+		fprintf(wfp,"%s\t%10ld\n",line[i].key,line[i].offset);
 	}
+	
 	fclose(wfp);
-	fclose(fp);
 	
 	et=clock();
 	theTimes=(double)((et-st)/CLOCKS_PER_SEC);
 	printf("输出运行时间：%f秒\n",theTimes);
 	st=et;
-	
 	return 0;
 
 }
