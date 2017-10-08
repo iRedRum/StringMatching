@@ -9,8 +9,9 @@ typedef int bool;
 #define false 0
 #define true 1
 
-#define PLMAX 1300000
-#define wMAX 120
+#define PLMAX 1300000 
+#define wMAX 120 
+#define BMAX 10000 
 
 typedef struct mynode{  
     /** 节点的值 */  

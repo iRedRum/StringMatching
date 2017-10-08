@@ -63,7 +63,7 @@ int main()
 	
 	et=clock();
 	theTimes=(double)((et-st)/CLOCKS_PER_SEC);
-	printf("运行时间：%f秒\n",theTimes);
+	printf("建树运行时间：%f秒\n",theTimes);
 	st=et;
 	
 	//DLR(root);
@@ -106,12 +106,15 @@ int main()
 	
 	et=clock();
 	theTimes=(double)((et-st)/CLOCKS_PER_SEC);
-	printf("运行时间：%f秒\n",theTimes);
+	printf("失效运行时间：%f秒\n",theTimes);
 	st=et;
 	
 	
 	FILE *rfp=fopen("string.txt","r");
 	
+	char buffer[BMAX]; 
+	bool iscontinue=0;
+	long long preoffset=0;
 	char key[2];//每次从文件读入的一个字符 
 	
 	TSTp mp=root;//进行匹配的节点
@@ -121,78 +124,117 @@ int main()
 		printf("error.\n");
 		return 0;
 	}
-	a=fgetc(rfp);
-	while(a!=EOF)
+	
+	int readi;//用来进行读入缓冲区的数组下标
+	
+	while(fgets(buffer,BMAX,rfp)!=NULL)
 	{
-		if(a==10)
-		{
-			a=fgetc(rfp);
-		}
-		if(!(a>>7))
-		{
-			key[0]=0x00;
-			key[1]=a;
-		}
-		else
-		{
-			key[0]=a;
-			a=fgetc(rfp);
-			key[1]=a;
-		}
+		readi=0;//没进行一次缓冲区的读入，初始化一次下标 
 		
-		TSTp np=Match(key,mp);
-		//将关键字和匹配的节点的子节点匹配，是否有相匹配的节点
-		//有，返回该子节点，没有，返回NULL 
-		
-		while(np==NULL)
-		//这个匹配总能匹配到，最次也是根节点 
-		//这个节点的子节点没有匹配的节点，应该去看这个节点的失效节点了 
+		while(buffer[readi]!=0)
 		{
-		
-			mp=mp->nextNode;
-			//进行这个节点的失效节点的匹配 
-		
-			if(mp->isEnd==1)
-			//判断mp是否是一个关键字的结束节点 
+			
+			//从缓冲区进行需要进行匹配关键字的读取 
+			
+			a=buffer[readi];
+			if(iscontinue)
+			//临界的时候中文字符的特殊处理 
 			{
-				if(line[mp->num]==-1) 
-					line[mp->num]=ftell(rfp);
-				//进行输出到result文件上
+				key[1]=a;
+				iscontinue=false;
+			}
+			else
+			{
+				if(a==10)
+				//字符是回车进行处理 
+				{
+					readi++;
+					continue;
+				}
+				if(!(a>>7))
+				//英文字符单个进行填充的处理 
+				{
+					key[0]=0x00;
+					key[1]=a;
+				}
+				else
+				//中文字符的处理 
+				{
+					key[0]=a;
+					readi++;
+					if(buffer[readi]==0)
+					//如果这时候下一个刚好是边界了，需要跳出这个循环
+					//进行下一个循环的读入，再进行拼凑 
+					{
+						iscontinue=true;
+						continue;
+					}
+					a=buffer[readi];
+					key[1]=a;
+				}
+			}
+				
+			readi++; 
+			//指向缓冲区的下一个字符 
+			
+			
+			TSTp np=Match(key,mp);
+			//将关键字和匹配的节点的子节点匹配，是否有相匹配的节点
+			//有，返回该子节点，没有，返回NULL 
+			
+			while(np==NULL)
+			//这个匹配总能匹配到，最次也是根节点 
+			//这个节点的子节点没有匹配的节点，应该去看这个节点的失效节点了 
+			{
+			
+				mp=mp->nextNode;
+				//进行这个节点的失效节点的匹配 
+			
+				if(mp->isEnd==1)
+				//判断mp是否是一个关键字的结束节点 
+				{
+					if(line[mp->num]==-1) 
+						line[mp->num]=preoffset+i;
+					//进行输出到result文件上
+					
+				} 
+				
+				np=Match(key,mp);
+				//再将这个节点和失效节点的子节点进行匹配看看是否成功 
 				
 			} 
 			
-			np=Match(key,mp);
-			//再将这个节点和失效节点的子节点进行匹配看看是否成功 
-			
-		} 
-		
-		if(np!=NULL)
-		//该节点的子节点中有匹配的节点 
-		{
-			if(np->isEnd==1)
+			if(np!=NULL)
+			//该节点的子节点中有匹配的节点 
 			{
-				if(line[np->num]==-1)
-					line[np->num]=ftell(rfp);
-				//printf("%ld",ftell(rfp));
-				//匹配的节点是关键字的结束的节点，输出相应数据到result里面 
-			} 
-			
-			mp=np;
-			//接下来进行下一个关键字的匹配了 	
+				if(np->isEnd==1)
+				{
+					if(line[np->num]==-1)
+						line[np->num]=preoffset+i;
+					//printf("%ld",ftell(rfp));
+					//匹配的节点是关键字的结束的节点，输出相应数据到result里面 
+				} 
+				
+				mp=np;
+				//接下来进行下一个关键字的匹配了 	
+			}
 		}
-		
-		a=fgetc(rfp);
-		
+		preoffset=ftell(rfp);
 	}
 	fclose(rfp);
 	
 	et=clock();
 	theTimes=(double)((et-st)/CLOCKS_PER_SEC);
-	printf("运行时间：%f秒\n",theTimes);
+	printf("查找运行时间：%f秒\n",theTimes);
 	st=et;
 	
 	
 	FILE *wfp=fopen("wtest.txt","w");
+	if(wfp==NULL)
+	{
+		printf("error.\n");
+		return 0;
+	}
 	fseek(fp,0,SEEK_SET);
 	char akey[wMAX];
 	long midnum=0; 
@@ -208,7 +250,7 @@ int main()
 	
 	et=clock();
 	theTimes=(double)((et-st)/CLOCKS_PER_SEC);
-	printf("运行时间：%f秒\n",theTimes);
+	printf("输出运行时间：%f秒\n",theTimes);
 	st=et;
 	
 	return 0;
