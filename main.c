@@ -18,14 +18,15 @@ int main()
 	LNP line=(LNP)malloc(sizeof(LNode)*PLMAX);
 	//申请用来存放输出结构体的空间 
 	int i=0;
-	int lentemp;//读入的时候长度的暂存量 
-
+	int lentemp;//读入的时候长度的暂存量
+	
 	for(i=0;i<PLMAX;i++)
 	//初始化输出结构体 
 	{
 		line[i].flag=false;
-		line[i].offset=-1;
+		line[i].offset=NULL;
 		line[i].len=0;
+		line[i].num=0;
 	}
 	
 	fp=fopen("pattern.txt","r");
@@ -203,6 +204,7 @@ int main()
 			
 			
 			TSTp np=Match(key,mp);
+			
 			//将关键字和匹配的节点的子节点匹配，是否有相匹配的节点
 			//有，返回该子节点，没有，返回NULL 
 			
@@ -217,10 +219,15 @@ int main()
 				if(mp->isEnd==1)
 				//判断mp是否是一个关键字的结束节点 
 				{
-					if(line[mp->num].offset==-1) 
-						line[mp->num].offset=preoffset+i;
-					//进行输出到result文件上
-					
+					ONP newonp=(ONP)malloc(sizeof(ONode));
+					//申请一个新的进行缓冲存储的节点 
+					newonp->offset=preoffset+readi;
+					//设置新节点中存储的找到字符的偏移量 
+					newonp->nextnode=line[mp->num].offset;
+					//将输出的结构体头插法到输出链表中 
+					line[mp->num].offset=newonp;
+					line[mp->num].num++;
+					//匹配的次数自增 
 				} 
 				
 				np=Match(key,mp);
@@ -233,9 +240,15 @@ int main()
 			{
 				if(np->isEnd==1)
 				{
-					if(line[np->num].offset==-1)
-						line[np->num].offset=preoffset+i;
-					//printf("%ld",ftell(rfp));
+					ONP newonp=(ONP)malloc(sizeof(ONode));
+					//申请一个新的进行缓冲存储的节点 
+					newonp->offset=preoffset+readi;
+					//设置新节点中存储的找到字符的偏移量
+					newonp->nextnode=line[np->num].offset;
+					//将输出的结构体头插法到输出链表中
+					line[np->num].offset=newonp;
+					line[np->num].num++;
+					//匹配的次数自增 
 					//匹配的节点是关键字的结束的节点，输出相应数据到result里面 
 				} 
 				
@@ -264,7 +277,15 @@ int main()
 		//该节点是否有存放关键字 
 		//这里担心关键字的文档存在断层，我们使用了continue 
 			continue;
-		fprintf(wfp,"%s\t%10ld\n",line[i].key,line[i].offset);
+		fprintf(wfp,"%s %lld ",line[i].key,line[i].num);
+		//输出关键字和出现的次数 
+		ONP onptemp;
+		for(onptemp=line[i].offset;onptemp!=NULL;onptemp=onptemp->nextnode)
+		{
+			fprintf(wfp,"%lld ",onptemp->offset);
+			//循环输出出现在文件中的偏移量 
+		}
+		fprintf(wfp,"\n");
 	}
 	
 	fclose(wfp);

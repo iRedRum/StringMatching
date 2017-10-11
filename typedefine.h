@@ -40,14 +40,18 @@ typedef struct mynode{
     
 }TSTNode;  
 
+typedef struct offnode{
+	long long offset;
+	struct offnode *nextnode;
+}ONode,*ONP;
+
 typedef struct lnode{
-	
 	//输出结构
-	
-	bool flag;//该节点是否有关键字 
-	long long offset;//在需要进行匹配的文本中的偏移量 
-	char key[wMAX];//该节点存放的关键字 
-	int len;//该节点存放的关键字的长度 
+	bool flag;
+	ONP offset;
+	long num;
+	char key[wMAX];
+	int len;
 }LNode,*LNP;
 
 typedef TSTNode* TSTp;
@@ -81,6 +85,8 @@ void TraverseStack(pStack );    //    遍历栈函数
 bool Empty(pStack );            //    判断栈是否为空的函数
 TSTp Pop(pStack );                //    进行出栈操作的函数
 void Clear(pStack );            //    清空栈的函数
+pStack Copy(pStack );		//复制栈到另一个新的指针里面 
+
 
 //treeop.c
 void DLR(TSTp root);		//前序遍历。 
