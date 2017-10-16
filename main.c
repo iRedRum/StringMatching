@@ -29,7 +29,7 @@ int main()
 		line[i].num=0;
 	}
 	
-	fp=fopen("pattern.txt","r");
+	fp=fopen("2.txt","r");
 	init(root);
 	if(fp==NULL)
 	{
@@ -132,7 +132,7 @@ int main()
 	st=et;
 	
 	
-	FILE *rfp=fopen("string.txt","r");
+	FILE *rfp=fopen("test.txt","r");
 	
 	char buffer[BMAX]; 
 	bool iscontinue=0;
@@ -221,7 +221,7 @@ int main()
 				{
 					ONP newonp=(ONP)malloc(sizeof(ONode));
 					//申请一个新的进行缓冲存储的节点 
-					newonp->offset=preoffset+readi;
+					newonp->offset=preoffset+readi-1;
 					//设置新节点中存储的找到字符的偏移量 
 					newonp->nextnode=line[mp->num].offset;
 					//将输出的结构体头插法到输出链表中 
