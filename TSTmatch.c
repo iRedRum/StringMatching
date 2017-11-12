@@ -1,33 +1,15 @@
 #include "typedefine.h"
 
-
-TSTp init(TSTp p)
-{
-	p->leftNode=NULL;
-	p->midNode=NULL;
-	p->rightNode=NULL;
-	p->parentNode=NULL;
-	p->nextNode=NULL;
-	
-	p->num=0;
-	
-	p->c[0]=0;
-	p->c[1]=0;
-	
-	p->isEnd=0;
-}//初始化每一个节点的值 
-
 TSTp add(char* key,TSTp root,int length,int linecount)
 {
-	TSTp curp=root;
-	
 	int charIndex=0;
+	TSTp curp=root;
 	int isSame=0;
-	 
+	
 	if(key[charIndex+1]=='\0')
 	//表示有直接就是空字符的进来，根节点可以进行匹配 
 		root->isEnd=1; 
-	
+
 	if(curp->midNode!=NULL)
 	{
 		curp=curp->midNode;
@@ -47,8 +29,7 @@ TSTp add(char* key,TSTp root,int length,int linecount)
 		{
 			TSTp newp=(TSTp)malloc(sizeof(TSTNode));
 			 //没有新的节点那么申请一个新的节点，继续比较
-				
-			init(newp);
+			memset(newp,0,sizeof(TSTNode));	
 			//初始化新的节点
 				
 			newp->c[0]=key[charIndex];
@@ -60,27 +41,21 @@ TSTp add(char* key,TSTp root,int length,int linecount)
 				
 			curp->midNode->parentNode=curp;
 			//子节点的父节点指向本节点 
-			
-			//printf("%c%c的中插入%c%c\n",curp->c[0],curp->c[1],newp->c[0],newp->c[1]);
-			
+	
 			curp=curp->midNode; 
 			//下一个节点指向子节点 
 			
 			continue;
 		}
-		
-		
 		if(isSame)
 		{
 			charIndex+=2;
 			//匹配成功后关键字的位移应该移动两位 
-			
-			 
+	 
 			if(charIndex==length)
 			{
 				curp->isEnd=1;
 				curp->num=linecount;
-				//printf("length=%d\n",length);
 				//关键字已经生成了相应的树，所以标志已经结束 
 				return root; 
 			}
@@ -91,7 +66,7 @@ TSTp add(char* key,TSTp root,int length,int linecount)
 				TSTp newp=(TSTp)malloc(sizeof(TSTNode));
 				 //没有新的节点那么申请一个新的节点，继续比较
 				
-				init(newp);
+				memset(newp,0,sizeof(TSTNode));
 				//初始化新的节点
 				
 				newp->c[0]=key[charIndex];
@@ -102,14 +77,11 @@ TSTp add(char* key,TSTp root,int length,int linecount)
 				//子节点指向新的节点 
 				
 				curp->midNode->parentNode=curp;
-				//子节点的父节点指向本节点 
-				
-				//printf("%c%c的中插入%c%c\n",curp->c[0],curp->c[1],newp->c[0],newp->c[1]);
-				
+				//子节点的父节点指向本节点 	
 			}
 			
 			//如果他的子节点，也就是midnode不是空的，那么我们就不需要进行创建，继续往下匹配 
-			
+		
 			curp=curp->midNode; 
 			//下一个节点指向子节点 
 		}
@@ -122,7 +94,7 @@ TSTp add(char* key,TSTp root,int length,int linecount)
 				TSTp newp=(TSTp)malloc(sizeof(TSTNode));
 				 //没有新的节点那么申请一个新的节点，继续比较
 				
-				init(newp);
+				memset(newp,0,sizeof(TSTNode));
 				//初始化新的节点
 				
 				newp->c[0]=key[charIndex];
@@ -134,9 +106,6 @@ TSTp add(char* key,TSTp root,int length,int linecount)
 				
 				curp->leftNode->parentNode=curp->parentNode;
 				//兄弟节点的父节点指向自己节点的父节点 
-				
-				//printf("%c%c的左插入%c%c\n",curp->c[0],curp->c[1],newp->c[0],newp->c[1]);
-				
 			}
 			
 			//如果他的左节点leftnode不是空的，那么我们就不需要进行创建，继续往下比较，看看能不能匹配 
@@ -152,8 +121,7 @@ TSTp add(char* key,TSTp root,int length,int linecount)
 			{
 				TSTp newp=(TSTp)malloc(sizeof(TSTNode));
 				 //没有新的节点那么申请一个新的节点，继续比较
-				
-				init(newp);
+				memset(newp,0,sizeof(TSTNode));
 				//初始化新的节点
 				
 				newp->c[0]=key[charIndex];
@@ -164,23 +132,16 @@ TSTp add(char* key,TSTp root,int length,int linecount)
 				//右节点指向新的节点
 				
 				curp->rightNode->parentNode=curp->parentNode;
-				//兄弟节点的父节点指向自己节点的父节点 	
-				
-				//printf("%c%c的右插入%c%c\n",curp->c[0],curp->c[1],newp->c[0],newp->c[1]); 
+				//兄弟节点的父节点指向自己节点的父节点 		
 			}
 			
 			//如果他的右节点rightnode不是空的，那么我们就不需要进行创建，继续往下比较，看看能不能匹配 
 			//注意，这里不用对关键字的偏移量进行修改了 	
 			
 			curp=curp->rightNode; 
-			//下一个节点指向右节点 
-			
-
-				
-		}		
-		
-	}
-	
+			//下一个节点指向右节点 		
+		}	
+	}	
  } 
  
 pStack Traverse(pStack ps)
@@ -204,17 +165,6 @@ pStack Traverse(pStack ps)
 		p=Pop(ps);
 		//从上一层的节点的栈里弹出低一层的节点，来计算下一层的节点 
 
-		/*if(p->leftNode!=NULL)
-		{
-			Push(t_ps,p->leftNode);
-			Push(new_ps,p->leftNode);
-		}
-			
-		if(p->rightNode!=NULL)
-		{
-			Push(t_ps,p->rightNode);
-			Push(new_ps,p->rightNode);
-		}*/
 		if(p->midNode!=NULL)
 		{
 			Push(t_ps,p->midNode);
@@ -230,25 +180,18 @@ pStack Traverse(pStack ps)
 			if(p->leftNode!=NULL)
 			{
 				Push(t_ps,p->leftNode);
-				//Push(new_ps,p->leftNode);
 			}
 			//如果弹出的节点的左节点不是空的话，要压入栈里 
 			
 			if(p->rightNode!=NULL)
 			{
 				Push(t_ps,p->rightNode);
-				//Push(new_ps,p->rightNode);
 			}
-			//如果弹出的节点的右节点不是空的话，要压入栈里 
-				
+			//如果弹出的节点的右节点不是空的话，要压入栈里 	
 		}
-		
 	 } 
-	 
-	 
 	 return new_ps;
 	 //将只含下一层节点的栈的指针返回 
-		
 }
  
 TSTp Match(char* key,TSTp root)
@@ -256,8 +199,7 @@ TSTp Match(char* key,TSTp root)
 {
 	if(key==NULL)
 		return NULL;
-	
-	
+		
 	TSTp curp=root->midNode;
 	
 	while(1)
@@ -268,7 +210,6 @@ TSTp Match(char* key,TSTp root)
 		else if(curp==NULL)
 			return NULL;
 		
-		
 		if(curp->c[0]==key[0]
 		&&curp->c[1]==key[1])
 			return 	curp;
@@ -278,7 +219,6 @@ TSTp Match(char* key,TSTp root)
 		else
 			curp=curp->rightNode;
 	}
-	
  } 
 
 
@@ -294,9 +234,7 @@ void  Failure(pStack ps)
 		
 		int isMatch=0;
 		//是否已经匹配到了相应的失效转换节点 
-		
-		//printf("当前：%c%c,父：%c%c\n",p->c[0],p->c[1],p->parentNode->c[0],p->parentNode->c[1]);
-		
+			
 		if(p->parentNode->nextNode==NULL)
 		//如果是深度为1的节点，那么其失效节点就是根节点 
 			p->nextNode=p->parentNode;
@@ -312,6 +250,16 @@ void  Failure(pStack ps)
 				if(mp!=NULL)
 				{
 					p->nextNode=mp;
+					if(mp->isEnd==1)	//该失效节点为终止结点 
+					{
+						p->FisEnd=1;
+						p->Fnum=mp->num;
+					}
+					else if(mp->FisEnd==1)	//该失效节点的前置失效节点链中有终止结点 
+					{
+						p->FisEnd=1;
+						p->Fnum=-1; 
+					}
 					isMatch=1;
 				}
 				else
@@ -321,46 +269,5 @@ void  Failure(pStack ps)
 				}
 			}
 		}
-		
 	}
-	
 }
-
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 

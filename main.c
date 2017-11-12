@@ -3,40 +3,41 @@
 /* run this program using the console pauser or add your own getch, system("pause") or input loop */
 //根节点的nextNode是NULL,parentNode是NULL 
 //int argc, char *argv[]
-int main()
+int main(int argc, char **argv)
 {
-	//读入pattern文档进行字符串构建三叉trie树 
-	clock_t st=clock();//程序开始的时间 
-	clock_t et=0;//程序结束的时间 
-	double theTimes=0;//使用时间 
-	TSTp root=(TSTp)malloc(sizeof(TSTNode));//需要进行插入的根节点 
-	char a='\0';//临时存储 
-	char in[wMAX]={'\0'};//需要进行插入的关键字
-	int len=0;	//关键字数组已存入字数目
-	int linecount=1; //记录关键字在文本文件中的第几行 
-	FILE *fp=NULL;	//文件指针 
-	LNP line=(LNP)malloc(sizeof(LNode)*PLMAX);
-	//申请用来存放输出结构体的空间 
-	int i=0;
-	int lentemp;//读入的时候长度的暂存量
-	
-	for(i=0;i<PLMAX;i++)
-	//初始化输出结构体 
+	//文件名变量 
+	char *tfilename="string_l.txt";		//匹配文本名 
+	char *pfilename="pattern_l.txt";	//模式串文本名 
+	char *wfilename="result.txt";		//输出文本名 
+	if(argc == 4)
 	{
-		line[i].flag=false;
-		line[i].offset=NULL;
-		line[i].len=0;
-		line[i].num=0;
+		tfilename=argv[1];
+		pfilename=argv[2];
+		wfilename=argv[3];
 	}
+	 
+	TSTp root=(TSTp)malloc(sizeof(TSTNode));//三叉树根节点 
+	LNP line=(LNP)malloc(sizeof(LNode)*PLMAX);
+	//申请用来存放输出结构体的空间
+	memset(line,0,sizeof(LNode)*PLMAX);
+	memset(root,0,sizeof(TSTNode));
 	
-	fp=fopen("2.txt","r");
-	init(root);
-	if(fp==NULL)
+	//读入pattern文档进行字符串构建三叉trie树 
+	FILE *pfp=fopen(pfilename,"r");
+	
+	if(pfp==NULL)
 	{
 		printf("error.\n");
 		return 0;
 	}
-	a=fgetc(fp);
+	
+	char in[wMAX]={'\0'};//需要进行插入的关键字
+	int len=0;	//关键字数组已存入字数目
+	int linecount=1; //记录关键字在文本文件中的第几行 
+	char a='\0';//临时存储 
+	int lentemp;//读入的时候长度的暂存量
+	
+	a=fgetc(pfp);
 	len=0;
 	while(a!=EOF)
 	{
@@ -53,7 +54,7 @@ int main()
 			add(in,root,len,linecount);
 			len=0;//长度重新初始化为0 
 			linecount++;//关键字的行数进行递增 
-			a=fgetc(fp);//读入下一个需要进行判断的字符 
+			a=fgetc(pfp);//读入下一个需要进行判断的字符 
 			continue;
 		}
 		else if(!(a>>7))
@@ -70,13 +71,13 @@ int main()
 			in[len]=a;
 			lentemp=line[linecount].len++;
 			line[linecount].key[lentemp]=a;
-			a=fgetc(fp);
+			a=fgetc(pfp);
 			in[len+1]=a;
 			lentemp=line[linecount].len++;
 			line[linecount].key[lentemp]=a;
 		}
 		len+=2;
-		a=fgetc(fp);
+		a=fgetc(pfp);
 	}
 	
 	//文本中的最后一个字符需要进行特殊处理 
@@ -89,18 +90,8 @@ int main()
 		line[linecount].flag=true;
 		add(in,root,len,linecount); 
 	}
-	fclose(fp);
-	
-	et=clock();
-	theTimes=(double)((et-st)/CLOCKS_PER_SEC);
-	printf("建树运行时间：%f秒\n",theTimes);
-	st=et;
-	
-	//DLR(root);
-	//MLR(root);
+	fclose(pfp);
 
-	
-	
 	//为三叉trie树创建失效函数的指针 
 	pStack ps=(pStack)malloc(sizeof(Stack));
 	InitStack(ps);
@@ -108,7 +99,6 @@ int main()
 	Push(ps,root);
 	//遍历出所有第一层的节点 
 	pStack hps=Traverse(ps);
-
 
 	//在建好的三叉树上创建失效函数 
 	while(!Empty(hps))
@@ -126,31 +116,23 @@ int main()
 		
 	}
 	
-	et=clock();
-	theTimes=(double)((et-st)/CLOCKS_PER_SEC);
-	printf("失效运行时间：%f秒\n",theTimes);
-	st=et;
+	//进行文件字符串的匹配 
+	FILE *rfp=fopen(tfilename,"r");	//匹配文件指针 
+	FILE *wfp=fopen(wfilename,"w");	//输出文件指针 
 	
-	
-	FILE *rfp=fopen("test.txt","r");
-	
-	char buffer[BMAX]; 
-	bool iscontinue=0;
-	long long preoffset=0;
-	char key[2];//每次从文件读入的一个字符 
-	
-	TSTp mp=root;//进行匹配的节点
-	
-	if(rfp==NULL)
+	if(rfp==NULL||wfp==NULL)
 	{
 		printf("error.\n");
 		return 0;
-	}
+	}	
 	
-	
-	//进行文件字符串的匹配 
-	
+	char buffer[BMAX];//用来做文本读入匹配的缓冲区 
+	bool iscontinue=0;	//处理缓冲区临界情况（2字节中文字符被分在两个缓冲区） 
+	long long preoffset=0;	//之前所读取的缓冲区总偏移量 
+	char key[2];//每次从文件读入的中文或英文字符（都按2字节处理） 
 	int readi;//用来进行读入缓冲区的数组下标
+	int buflen=0;//用来记录已经使用的缓冲区数目
+	TSTp mp=root;//进行匹配的节点
 	
 	while(fgets(buffer,BMAX,rfp)!=NULL)
 	{
@@ -158,9 +140,7 @@ int main()
 		
 		while(buffer[readi]!=0)
 		{
-			
 			//从缓冲区进行需要进行匹配关键字的读取 
-			
 			a=buffer[readi];
 			if(iscontinue)
 			//临界的时候中文字符的特殊处理 
@@ -170,12 +150,6 @@ int main()
 			}
 			else
 			{
-				if(a==10)
-				//字符是回车进行处理 
-				{
-					readi++;
-					continue;
-				}
 				if(!(a>>7))
 				//英文字符单个进行填充的处理 
 				{
@@ -197,14 +171,11 @@ int main()
 					a=buffer[readi];
 					key[1]=a;
 				}
-			}
-				
+			}//字符读取结束 
+			
 			readi++; 
 			//指向缓冲区的下一个字符 
-			
-			
 			TSTp np=Match(key,mp);
-			
 			//将关键字和匹配的节点的子节点匹配，是否有相匹配的节点
 			//有，返回该子节点，没有，返回NULL 
 			
@@ -212,88 +183,49 @@ int main()
 			//这个匹配总能匹配到，最次也是根节点 
 			//这个节点的子节点没有匹配的节点，应该去看这个节点的失效节点了 
 			{
-			
 				mp=mp->nextNode;
-				//进行这个节点的失效节点的匹配 
-			
-				if(mp->isEnd==1)
-				//判断mp是否是一个关键字的结束节点 
-				{
-					ONP newonp=(ONP)malloc(sizeof(ONode));
-					//申请一个新的进行缓冲存储的节点 
-					newonp->offset=preoffset+readi-1;
-					//设置新节点中存储的找到字符的偏移量 
-					newonp->nextnode=line[mp->num].offset;
-					//将输出的结构体头插法到输出链表中 
-					line[mp->num].offset=newonp;
-					line[mp->num].num++;
-					//匹配的次数自增 
-				} 
-				
 				np=Match(key,mp);
-				//再将这个节点和失效节点的子节点进行匹配看看是否成功 
-				
-			} 
+				//再将这个节点和失效节点的子节点进行匹配看看是否成功
+			}
 			
 			if(np!=NULL)
 			//该节点的子节点中有匹配的节点 
 			{
-				if(np->isEnd==1)
+				if(np->isEnd==1)	
+				//该节点为关键字终止节点 
+				//输出该关键字 
+				{ 
+					long long int offsettemp=preoffset+readi-line[np->num].len;
+					fprintf(wfp,"%s %lld\n",line[np->num].key,offsettemp);
+				}
+				TSTp ftemp=np;
+				while(ftemp->FisEnd)
+				//其失效结点链中有关键字终止结点 
 				{
-					ONP newonp=(ONP)malloc(sizeof(ONode));
-					//申请一个新的进行缓冲存储的节点 
-					newonp->offset=preoffset+readi;
-					//设置新节点中存储的找到字符的偏移量
-					newonp->nextnode=line[np->num].offset;
-					//将输出的结构体头插法到输出链表中
-					line[np->num].offset=newonp;
-					line[np->num].num++;
-					//匹配的次数自增 
-					//匹配的节点是关键字的结束的节点，输出相应数据到result里面 
-				} 
-				
+					int Fnum=ftemp->Fnum;
+					if(Fnum==-1)
+					//该结点非终止结点，但是其前置失效节点链中仍有终止结点 
+					{
+						ftemp=ftemp->nextNode;
+						continue;
+					}
+					//输出失效节点链中的关键字 
+					long long int offsettemp=preoffset+readi-line[Fnum].len;
+					fprintf(wfp,"%s %lld\n",line[Fnum].key,offsettemp);
+					
+					ftemp=ftemp->nextNode;//循环
+				}
 				mp=np;
 				//接下来进行下一个关键字的匹配了 	
 			}
 		}
-		
 		preoffset=ftell(rfp);
 		//已经读入的文件大小，用来计算后面的偏移量 
-		
 	}
-	
 	fclose(rfp); 
-	
-	et=clock();
-	theTimes=(double)((et-st)/CLOCKS_PER_SEC);
-	printf("查找运行时间：%f秒\n",theTimes);
-	st=et;
-	
-	
-	FILE *wfp=fopen("wtest.txt","w");
-	for(i=1;i<PLMAX;i++)
-	{
-		if(!line[i].flag)
-		//该节点是否有存放关键字 
-		//这里担心关键字的文档存在断层，我们使用了continue 
-			continue;
-		fprintf(wfp,"%s %lld ",line[i].key,line[i].num);
-		//输出关键字和出现的次数 
-		ONP onptemp;
-		for(onptemp=line[i].offset;onptemp!=NULL;onptemp=onptemp->nextnode)
-		{
-			fprintf(wfp,"%lld ",onptemp->offset);
-			//循环输出出现在文件中的偏移量 
-		}
-		fprintf(wfp,"\n");
-	}
-	
 	fclose(wfp);
-	
-	et=clock();
-	theTimes=(double)((et-st)/CLOCKS_PER_SEC);
-	printf("输出运行时间：%f秒\n",theTimes);
-	st=et;
+
 	return 0;
 
 }
+

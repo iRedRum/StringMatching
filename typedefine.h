@@ -9,9 +9,12 @@ typedef int bool;
 #define false 0
 #define true 1
 
-#define PLMAX 1300000
+#define PLMAX 1300000 
 #define wMAX 120
 #define BMAX 10000
+#define BUFMAX 10000
+
+
 
 typedef struct mynode{  
     /** 节点的值 */  
@@ -32,6 +35,12 @@ typedef struct mynode{
     int isEnd;
     /*表示这个节点是不是终止节点*/
     
+    int FisEnd;
+	/*表示这个节点的失效节点是不是终止节点*/
+	
+	int Fnum;
+	/*表示这个节点的失效节点如果是终止节点，其所在的行数*/ 
+    
     struct mynode*	parentNode;
     /*表示这个节点的父节点*/
     
@@ -40,16 +49,9 @@ typedef struct mynode{
     
 }TSTNode;  
 
-typedef struct offnode{
-	long long offset;
-	struct offnode *nextnode;
-}ONode,*ONP;
-
 typedef struct lnode{
 	//输出结构
 	bool flag;
-	ONP offset;
-	long num;
 	char key[wMAX];
 	int len;
 }LNode,*LNP;
@@ -70,9 +72,7 @@ typedef struct stack
     pNode Bottom;        //栈底
 }Stack,* pStack;
 
-
 //TSTmatch.c
-TSTp init(TSTp p);
 TSTp add(char* key,TSTp root,int length,int linecount);
 pStack Traverse(pStack ps);				//构造出下一层节点的栈 
 TSTp Match(char* key,TSTp root);		//该节点是否与root的子节点匹配 
@@ -88,12 +88,6 @@ void Clear(pStack );            //    清空栈的函数
 pStack Copy(pStack );		//复制栈到另一个新的指针里面 
 
 
-//treeop.c
-void DLR(TSTp root);		//前序遍历。 
-void MLR(TSTp root);		//中序遍历。
-
-
-
-
 
 #endif
+
